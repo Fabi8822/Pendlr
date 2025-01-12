@@ -1,0 +1,294 @@
+<template>
+  <div
+    v-if="isProfilePopupOpen"
+    style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; padding: 20px; background: #333; border-radius: 10px; width: 500px; color: white; text-align: center; max-height: 80vh; overflow-y: auto;"
+  >
+    <div class="popup-header">
+      <!-- Zurück-Pfeil Button -->
+      <button @click="goBack" class="back-btn">←</button>
+      <h2>Profil erstellen</h2>
+    </div>
+
+    <v-form @submit.prevent="submitProfile">
+      <!-- Profilbild Auswahl -->
+      <div class="profile-picture">
+        <label for="profile-picture-upload" class="profile-picture-label">Profilbild hochladen:</label>
+        <input
+          id="profile-picture-upload"
+          type="file"
+          accept="image/*"
+          @change="onProfilePictureChange"
+          class="profile-picture-input"
+        />
+        <div v-if="profile.picturePreview" class="picture-preview">
+          <img :src="profile.picturePreview" alt="Profilbild Vorschau" />
+        </div>
+      </div>
+
+      <!-- Name -->
+      <v-text-field
+        v-model="profile.name"
+        label="Username"
+        required
+        :rules="[nameRule]"
+        maxlength="10"
+        class="form-input"
+      />
+      <p style="color: darkorange; font-size: 0.9em; margin-top: -20px;">
+      Unter diesem Namen wird Ihr Profil anderen Personen der Plattform angezeigt! Maximal 10 Zeichen erlaubt.
+</p>
+
+      <!-- Alter -->
+      <v-text-field
+        v-model="profile.age"
+        label="Alter"
+        required
+        type="number"
+        :rules="[ageRule]"
+        class="form-input"
+      />
+
+      <!-- Wohnort -->
+      <v-text-field
+        v-model="profile.location"
+        label="Wohnort"
+        required
+        class="form-input"
+      />
+
+      <!-- Geschlecht -->
+      <v-select
+        v-model="profile.gender"
+        :items="genderOptions"
+        label="Geschlecht"
+        required
+        class="form-input"
+      />
+
+      <!-- Fahrzeug -->
+      <v-text-field
+        v-model="profile.vehicle"
+        label="Dein Fahrzeug"
+        @input="vehicleInput"
+        class="form-input"
+      />
+      <p style="color: darkorange; font-size: 0.9em; margin-top: -20px;">
+Sofern Sie kein Fahrzeug besitzen und nur Mitfahrgelegenheiten suchen, lassen Sie dieses Feld leer.
+</p>
+      
+      <!-- Felder, die nur angezeigt werden, wenn das Fahrzeug ausgefüllt ist -->
+      <v-row v-if="isVehicleFilled">
+        <v-col cols="12" md="6">
+          <v-text-field
+            v-model="profile.color"
+            label="Farbe"
+            required
+            class="form-input"
+          />
+        </v-col>
+        <v-col cols="12" md="6">
+          <v-select
+            v-model="profile.doors"
+            :items="doorOptions"
+            label="Anzahl an Türen"
+            required
+            class="form-input"
+          />
+        </v-col>
+        <v-col cols="12" md="6">
+          <v-select
+            v-model="profile.trunkSpace"
+            :items="yesNoOptions"
+            label="Kofferraumplatz vorhanden?"
+            required
+            class="form-input"
+          />
+        </v-col>
+        <v-col cols="12" md="6">
+          <v-select
+            v-model="profile.airConditioning"
+            :items="yesNoOptions"
+            label="Klimaanalage funktionsfähig?"
+            required
+            class="form-input"
+          />
+        </v-col>
+        <v-col cols="12" md="6">
+          <v-select
+            v-model="profile.smokingAllowed"
+            :items="yesNoOptions"
+            label="Rauchen erlaubt?"
+            required
+            class="form-input"
+          />
+        </v-col>
+        <v-col cols="12" md="6">
+          <v-select
+            v-model="profile.petsAllowed"
+            :items="yesNoOptions"
+            label="Tiere erlaubt?"
+            required
+            class="form-input"
+          />
+        </v-col>
+        <v-col cols="12">
+          <v-text-field
+            v-model="profile.musicPreference"
+            label="Welche Musik/Radiosender hörst du am liebsten?"
+            required
+            class="form-input"
+          />
+        </v-col>
+      </v-row>
+
+      <!-- Submit Button -->
+      <v-btn type="submit" :disabled="!isFormValid" class="form-btn">Profil speichern</v-btn>
+    </v-form>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'ProfilePage',
+  data() {
+    return {
+      profile: {
+        name: '',
+        age: '',
+        location: '',
+        gender: null,
+        vehicle: '',
+        color: '',
+        doors: null,
+        trunkSpace: null,
+        airConditioning: null,
+        smokingAllowed: null,
+        petsAllowed: null,
+        musicPreference: '',
+        picture: null, // Das hochgeladene Bild
+        picturePreview: null, // Vorschau des Bildes
+      },
+      nameRule: value => !!value || 'Name ist erforderlich.',
+      ageRule: value => (value && value >= 14&& value <= 120) || 'Alter ist erforderlich und muss größer als 14, jedoch kleiner als 120 sein.',
+      genderOptions: ['Männlich', 'Weiblich', 'Divers'],
+      doorOptions: ['2', '3', '4', '5'],
+      yesNoOptions: ['Ja', 'Nein'],
+      isVehicleFilled: false,  // Kontrolliert, ob das Fahrzeugfeld ausgefüllt ist
+      isProfilePopupOpen: true,  // Steuert das Öffnen des Profilerstellungs-Popups
+    };
+  },
+  computed: {
+    isFormValid() {
+      return (
+        this.profile.name &&
+        this.profile.age &&
+        this.profile.location &&
+        this.profile.gender &&
+        (this.profile.vehicle ? this.isAllVehicleFieldsValid() : true)
+      );
+    },
+  },
+  methods: {
+    onProfilePictureChange(event) {
+      const file = event.target.files[0];
+      if (file) {
+        this.profile.picture = file; // Speichere die Datei
+        const reader = new FileReader();
+        reader.onload = e => {
+          this.profile.picturePreview = e.target.result; // Vorschau des Bildes anzeigen
+        };
+        reader.readAsDataURL(file);
+      }
+    },
+    vehicleInput() {
+      this.isVehicleFilled = this.profile.vehicle !== '';
+    },
+    isAllVehicleFieldsValid() {
+      return (
+        this.profile.color &&
+        this.profile.doors &&
+        this.profile.trunkSpace &&
+        this.profile.airConditioning &&
+        this.profile.smokingAllowed &&
+        this.profile.petsAllowed &&
+        this.profile.musicPreference
+      );
+    },
+    submitProfile() {
+alert('Profil gespeichert!');
+
+},
+    goBack() {
+      this.$router.go(-1)
+    },
+   
+  },
+};
+</script>
+
+<style scoped>
+/* Profilbild spezifische Styles */
+.profile-picture {
+  margin-bottom: 20px;
+}
+.profile-picture-label {
+  display: block;
+  margin-bottom: 10px;
+  color: white;
+  font-weight: bold;
+}
+.profile-picture-input {
+  display: block;
+  margin-bottom: 10px;
+}
+.picture-preview img {
+  max-width: 100px;
+  max-height: 100px;
+  border-radius: 50%;
+  margin-top: 10px;
+}
+.back-btn {
+background: none;
+border: none;
+color: white;
+font-size: 2em; /* Größe des Pfeils */
+cursor: pointer;
+padding: 15px; /* Vergrößert den Klickbereich */
+width: 60px; /* Breite des Buttons */
+height: 60px; /* Höhe des Buttons */
+display: flex;
+justify-content: center;
+align-items: center;
+border-radius: 50%; /* Rundes Design */
+transition: background-color 0.3s ease; /* Sanfter Hover-Effekt */
+}
+
+.back-btn:hover {
+background-color: rgba(255, 255, 255, 0.2); /* Hover-Hintergrund */
+}
+
+.form-btn {
+width: 100%;
+padding: 10px;
+height: 50px;
+background-color: #008556;
+color: white;
+border: none;
+font-size: 1.5em;
+border-radius: 5px;
+cursor: pointer;
+transition: background-color 0.3s ease;
+}
+
+/* Hover-Effekt */
+.form-btn:hover {
+background-color: #005c3c; /* Farbe beim Hover */
+}
+
+/* Wenn der Button deaktiviert ist */
+.form-btn:disabled {
+background-color: #66b89f; /* Farbe für deaktivierten Zustand */
+cursor: not-allowed;
+}
+
+</style>
