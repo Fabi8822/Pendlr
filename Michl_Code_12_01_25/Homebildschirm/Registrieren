@@ -1,0 +1,187 @@
+<template>
+    <div
+      v-if="isRegisterPopupOpen"
+      style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; padding: 20px; background: #333; border-radius: 10px; width: 400px; color: white; text-align: center;"
+    >
+      <div class="popup-header">
+        <button @click="closePopup" class="close-btn">✖</button>
+        <h2>Registrieren</h2>
+      </div>
+      <form class="popup-form" @submit.prevent="registerUser">
+        <!-- E-Mail -->
+        <div class="form-group">
+          <label for="email">E-Mail:</label>
+          <input
+            v-model="registerEmail"
+            type="email"
+            id="email"
+            placeholder="Max.Mustermann@uni-bayreuth.de"
+            class="form-input"
+            style="color: white"
+          />
+          <p v-if="!isEmailValid" style="color: darkorange; font-size: 0.9em; margin-top: 5px;">
+            Nur E-Mail-Adressen im folgenden Format erlaubt: Vorname.Nachname@uni-bayreuth.de
+          </p>
+        </div>
+  
+        <!-- Passwort -->
+        <div class="form-group">
+          <label for="password">Passwort:</label>
+          <div style="position: relative">
+            <input
+              v-model="registerPassword"
+              :type="registerPasswordType"
+              id="password"
+              placeholder="StrengGeheimesPasswort$1975"
+              class="form-input"
+              style="color: white"
+            />
+            <button
+              type="button"
+              @click="toggleRegisterPasswordVisibility"
+              style="position: absolute; top: 50%; right: 10px; transform: translateY(-50%); background: none; border: none; color: white; font-size: 1.2em; cursor: pointer;"
+            >
+              {{ registerPasswordType === 'password' ? '👁️' : '🙈' }}
+            </button>
+          </div>
+          <p style="color: darkorange; font-size: 0.9em; margin-top: 5px;">
+            Muss enthalten: Mindestens 8 Zeichen, mindestens ein Sonderzeichen, mindestens einen Groß- & Kleinbuchstaben und mindestens eine Zahl.
+          </p>
+        </div>
+  
+        <!-- Passwort Bestätigung -->
+        <div class="form-group">
+          <label for="confirm-password">Passwort bestätigen:</label>
+          <div style="position: relative">
+            <input
+              v-model="confirmPassword"
+              :type="confirmPasswordType"
+              id="confirm-password"
+              placeholder="Passwort bestätigen"
+              class="form-input"
+              style="color: white"
+            />
+            <button
+              type="button"
+              @click="toggleConfirmPasswordVisibility"
+              style="position: absolute; top: 50%; right: 10px; transform: translateY(-50%); background: none; border: none; color: white; font-size: 1.2em; cursor: pointer;"
+            >
+              {{ confirmPasswordType === 'password' ? '👁️' : '🙈' }}
+            </button>
+          </div>
+        </div>
+  
+        <!-- Checkbox für AGB und Datenschutz -->
+        <div class="form-group">
+          <label>
+            <input
+              type="checkbox"
+              v-model="acceptTerms"
+            />
+            Ich akzeptiere die <a href="#" @click="openDatenschutzPopup">Datenschutzrichtlinie</a> und die <a href="#" @click="openAGBPopup">AGBs</a>.
+          </label>
+        </div>
+  
+        <button type="submit" class="register-btn">Registrieren</button>
+      </form>
+    </div>
+  </template>
+  
+  <script>
+  export default {
+    props: {
+      isRegisterPopupOpen: Boolean, // Prop für das Öffnen des Popups
+    },
+    data() {
+      return {
+        registerEmail: '',
+        registerPassword: '',
+        confirmPassword: '',
+        registerPasswordType: 'password',
+        confirmPasswordType: 'password',
+        acceptTerms: false,
+      };
+    },
+    computed: {
+      // Validierung der E-Mail-Adresse
+      isEmailValid() {
+        const emailRegex = /^[a-zA-Z]+(\.[a-zA-Z]+)@uni-bayreuth\.de$/;
+        return emailRegex.test(this.registerEmail);
+      },
+    },
+    methods: {
+      toggleRegisterPasswordVisibility() {
+        this.registerPasswordType = this.registerPasswordType === 'password' ? 'text' : 'password';
+      },
+      toggleConfirmPasswordVisibility() {
+        this.confirmPasswordType = this.confirmPasswordType === 'password' ? 'text' : 'password';
+      },
+      registerUser() {
+        if (this.registerPassword !== this.confirmPassword) {
+          alert("Passwörter stimmen nicht überein!");
+          return;
+        }
+        if (!this.acceptTerms) {
+          alert("Sie müssen die Datenschutzrichtlinie und die AGBs akzeptieren!");
+          return;
+        }
+        alert("Benutzer erfolgreich registriert!");
+        this.$router.push({ name: 'profile-page' });  // Zum Beispiel zur Profilseite navigieren
+        this.$emit('close'); // Emit an event to close the popup
+      },
+      openDatenschutzPopup() {
+    this.$emit('open-datenschutz-popup'); // Sendet das Event an die Elternkomponente
+  },
+  openAGBPopup() {
+    this.$emit('open-agb-popup'); // Sendet das Event an die Elternkomponente
+  },
+  closePopup() {
+        this.$emit('close');
+      },
+    },
+  };
+  </script>
+  
+  <style scoped>
+  /* Zusätzliche Styles für das Layout und Popup */
+  .popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 10px;
+  }
+  .close-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5em;
+    cursor: pointer;
+  }
+  .form-group {
+    margin-bottom: 15px;
+  }
+  .form-input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border: none;
+    border-radius: 5px;
+    background-color: #444;
+    color: white;
+    font-size: 1em;
+  }
+  .login-btn, .register-btn {
+    width: 100%;
+    padding: 10px;
+    background-color: #008556;
+    color: white;
+    border: none;
+    font-size: 1.2em;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  .login-btn:hover, .register-btn:hover {
+    background-color: #005c3c;
+  }
+  </style>
+  
