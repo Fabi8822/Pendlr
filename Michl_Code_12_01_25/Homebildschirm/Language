@@ -1,0 +1,119 @@
+<template>
+  <div
+    v-if="isLanguagePopupOpen"
+    style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; padding: 20px; background: #333; border-radius: 10px; width: 400px; color: white; text-align: center;"
+  >
+    <div class="popup-header">
+      <button @click="$emit('close')" class="close-btn">✖</button>
+      <h2>Sprache wählen</h2>
+    </div>
+    <div class="language-options">
+      <div
+        v-for="(language, index) in languages"
+        :key="index"
+        class="language-option"
+      >
+        <img
+          :src="language.flag"
+          :alt="language.name"
+          class="language-flag"
+        />
+        <button
+          @click="changeLanguage(language.code)"
+          class="language-btn"
+        >
+          {{ language.name }}
+        </button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  props: {
+    isLanguagePopupOpen: {
+      type: Boolean,
+      required: true,
+    },
+  },
+  data() {
+    return {
+      languages: [
+        {
+          code: "de",
+          name: "Deutsch",
+          flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Flag_of_Germany.svg/1200px-Flag_of_Germany.svg.png",
+        },
+        {
+          code: "en",
+          name: "English",
+          flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Flag_of_the_United_States.svg/1200px-Flag_of_the_United_States.svg.png",
+        },
+        {
+          code: "zh",
+          name: "中文",
+          flag: "https://imgs.search.brave.com/IK1Zxx1T3nVxhlaQZ-HEDZCUYYNIlvTe-Awlk56vXdU/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9tZWRp/YS5pc3RvY2twaG90/by5jb20vaWQvNTM3/Mjg3MTY5L2RlL3Zl/a3Rvci9mbGFnZ2Ut/dm9uLWNoaW5hLmpw/Zz9zPTYxMng2MTIm/dz0wJms9MjAmYz1r/T19QZzg4ai1RWHJJ/X3VDUWNESmNVZjFN/QWNLNTVpemp3bWNS/bG03ZUwwPQ",
+        },
+      ],
+    };
+  },
+  methods: {
+    changeLanguage(code) {
+      this.$emit("language-changed", code);
+      this.$emit("close");
+    },
+  },
+};
+</script>
+
+<style scoped>
+.popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 10px;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5em;
+  cursor: pointer;
+}
+
+.language-options {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  margin-top: 15px;
+}
+
+.language-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.language-flag {
+  width: 75px; /* Breitere Flaggen */
+  height: 50px; /* Höhe angepasst für Proportionen */
+  object-fit: cover;
+  border-radius: 10%;
+}
+
+.language-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: white;
+  font-size: 1em;
+  text-align: center;
+}
+
+.language-btn:hover {
+  text-decoration: underline;
+}
+</style>
