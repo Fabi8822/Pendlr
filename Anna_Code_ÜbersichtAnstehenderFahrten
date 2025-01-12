@@ -1,0 +1,94 @@
+<template>
+    <div id="app">
+      <RideList />
+    </div>
+  </template>
+  
+  <script>
+  import RideList from './components/RideList.vue';
+  
+  export default {
+    components: {
+      RideList,
+    },
+  };
+  </script>
+
+
+
+<template>
+  <div>
+    <h2>Übersicht der anstehenden Fahrten</h2>
+    
+    <!-- Debugging: Zeigt die Rohdaten -->
+    <pre>{{ rides }}</pre>
+
+    <!-- Liste der Fahrten -->
+    <ul>
+      <li v-for="ride in rides" :key="ride.id">
+        <p>
+          Start: {{ ride.start }} - Ziel: {{ ride.destination }} - Zeit: {{ ride.time }}
+          <span v-if="ride.verified" style="color: green;">✔ Verifiziert</span>
+          <span v-else style="color: red;">✘ Nicht verifiziert</span>
+        </p>
+
+        <!-- Button zum Verifizieren -->
+        <button v-if="!ride.verified" @click="verifyRide(ride.id)">Verifizieren</button>
+        
+        <!-- Button zum Stornieren -->
+        <button @click="cancelRide(ride.id)" style="color: red; margin-left: 10px;">Stornieren</button>
+      </li>
+    </ul>
+  </div>
+</template>
+
+<script>
+import { rides } from '../data/rides.js';
+
+export default {
+  data() {
+    return {
+      rides: rides, // Liste der Fahrten
+    };
+  },
+  methods: {
+    // Verifizierung einer Fahrt
+    verifyRide(id) {
+      const ride = this.rides.find((r) => r.id === id);
+      if (ride) {
+        ride.verified = true; // Setze den Status der Fahrt auf "verifiziert"
+      }
+    },
+
+    // Stornierung einer Fahrt
+    cancelRide(id) {
+      // Filtert das rides-Array und entfernt die Fahrt mit der angegebenen ID
+      this.rides = this.rides.filter((ride) => ride.id !== id);
+    },
+  },
+};
+</script>
+
+<style>
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+li {
+  margin-bottom: 10px;
+  border-bottom: 1px solid #ccc;
+  padding: 10px 0;
+}
+button {
+  margin-top: 5px;
+  padding: 5px 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+button:hover {
+  background-color: #0056b3;
+}
+</style>
